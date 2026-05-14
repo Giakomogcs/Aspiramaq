@@ -860,16 +860,18 @@
         padding: 14px 18px;
         border-radius: 12px;
         line-height: 1.7;
-        /* Aumentado conforme pedido */
         box-shadow: var(--shadow-sm);
         font-size: 1rem;
-        /* Aumentado conforme pedido */
         overflow-wrap: break-word;
+      }
+      .message.assistant .message-content {
+        padding: 22px 26px;
       }
 
       .message.user .message-content {
         background: var(--bg-message-user);
         color: var(--text-message-user, white);
+        white-space: pre-wrap;
       }
 
       .message.assistant .message-content {
@@ -878,30 +880,146 @@
         border: 1px solid var(--border-color);
       }
 
-      /* ESTILOS DE MARKDOWN (TABELAS, LISTAS, ETC) */
-      .message-content table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-        border: 1px solid var(--border-color);
-        background: rgba(255, 255, 255, 0.05);
-        /* Leve fundo para destacar */
+      /* Tokens de cor para o conteúdo da resposta — visíveis em ambos temas */
+      :root {
+        --asst-accent: #2563eb;
+        --asst-accent-soft: rgba(37, 99, 235, 0.10);
+        --asst-accent-strong: #1d4ed8;
+        --asst-success: #16a34a;
+        --asst-success-soft: rgba(22, 163, 74, 0.12);
+        --asst-warn: #f59e0b;
+        --asst-warn-soft: rgba(245, 158, 11, 0.12);
+        --asst-info: #0ea5e9;
+        --asst-info-soft: rgba(14, 165, 233, 0.12);
+        --asst-card-bg: rgba(0, 0, 0, 0.025);
+      }
+      [data-theme="dark"] {
+        --asst-accent: #60a5fa;
+        --asst-accent-soft: rgba(96, 165, 250, 0.14);
+        --asst-accent-strong: #3b82f6;
+        --asst-success: #4ade80;
+        --asst-success-soft: rgba(74, 222, 128, 0.14);
+        --asst-warn: #fbbf24;
+        --asst-warn-soft: rgba(251, 191, 36, 0.14);
+        --asst-info: #38bdf8;
+        --asst-info-soft: rgba(56, 189, 248, 0.14);
+        --asst-card-bg: rgba(255, 255, 255, 0.025);
       }
 
-      .message-content th {
-        background: var(--color-dark-gray);
-        color: white;
-        padding: 12px;
-        text-align: left;
-        font-size: 0.85rem;
-        text-transform: uppercase;
+      /* Seções como "cards" leves */
+      .message.assistant .message-content h1,
+      .message.assistant .message-content h2,
+      .message.assistant .message-content h3 {
+        margin-top: 26px;
+        margin-bottom: 12px;
+        line-height: 1.3;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+      .message.assistant .message-content h2 {
+        font-size: 1.05rem;
+        color: var(--asst-accent);
+        padding: 10px 14px;
+        border-left: 4px solid var(--asst-accent);
+        background: var(--asst-accent-soft);
+        border-radius: 6px;
+        border-bottom: none;
+      }
+      /* Variantes de cor por emoji de seção */
+      .message.assistant .message-content h2:has(> :first-child) { /* fallback */ }
+      .message.assistant .message-content h2.sec-spec,
+      .message.assistant .message-content h2:where(:is(*))[data-sec="spec"] {
+        color: var(--asst-success);
+        border-left-color: var(--asst-success);
+        background: var(--asst-success-soft);
+      }
+      .message.assistant .message-content h2.sec-warn {
+        color: var(--asst-warn);
+        border-left-color: var(--asst-warn);
+        background: var(--asst-warn-soft);
+      }
+      .message.assistant .message-content h2.sec-info {
+        color: var(--asst-info);
+        border-left-color: var(--asst-info);
+        background: var(--asst-info-soft);
+      }
+      .message.assistant .message-content h3 {
+        font-size: 1rem;
+        color: var(--asst-accent);
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .message.assistant .message-content > *:first-child {
+        margin-top: 0;
+      }
+      .message.assistant .message-content p,
+      .message.assistant .message-content ul,
+      .message.assistant .message-content ol {
+        margin: 10px 0;
+      }
+      .message.assistant .message-content hr {
+        border: none;
+        border-top: 1px dashed var(--border-color);
+        margin: 20px 0;
+      }
+      .message.assistant .message-content blockquote {
+        border-left: 4px solid var(--asst-info);
+        padding: 10px 14px;
+        margin: 14px 0;
+        background: var(--asst-info-soft);
+        border-radius: 6px;
+        color: inherit;
+      }
+      .message.assistant .message-content blockquote p { margin: 0; }
+
+      /* Highlight do "Próximo passo" — última seção como CTA */
+      .message.assistant .message-content h2.sec-cta + p,
+      .message.assistant .message-content h2.sec-cta + ul {
+        background: var(--asst-success-soft);
+        border-left: 4px solid var(--asst-success);
+        padding: 12px 14px;
+        border-radius: 6px;
         font-weight: 600;
       }
 
-      .message-content td {
-        padding: 12px;
+      /* ESTILOS DE MARKDOWN (TABELAS, LISTAS, ETC) */
+      .message-content table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 16px 0 22px;
         border: 1px solid var(--border-color);
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--asst-card-bg);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      }
+
+      .message-content th {
+        background: linear-gradient(180deg, var(--asst-accent-strong), var(--asst-accent));
+        color: #fff;
+        padding: 11px 14px;
+        text-align: left;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 700;
+        border: none;
+      }
+
+      .message-content td {
+        padding: 11px 14px;
+        border-top: 1px solid var(--border-color);
         font-size: 0.95rem;
+        vertical-align: top;
+      }
+      .message-content td:first-child {
+        font-weight: 600;
+        color: var(--asst-accent);
+        white-space: nowrap;
+      }
+      [data-theme="dark"] .message-content td:first-child {
+        color: var(--asst-accent);
       }
 
       /* Zebra striping adaptável ao tema */
@@ -973,6 +1091,103 @@
         background: transparent;
         padding: 0;
         color: inherit;
+      }
+
+      /* QUICK REPLY CHIPS */
+      .quick-replies {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed var(--border-color);
+      }
+      .quick-reply-chip {
+        background: var(--bg-input);
+        color: var(--text-primary);
+        border: 1.5px solid var(--color-primary);
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.15s;
+        line-height: 1.3;
+      }
+      .quick-reply-chip:hover:not(:disabled) {
+        background: var(--color-primary);
+        color: white;
+        transform: translateY(-1px);
+      }
+      .quick-reply-chip:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .quick-reply-chip.selected {
+        background: var(--color-primary);
+        color: white;
+      }
+
+      /* QUICK FORM (inline multi-question) */
+      .quick-form {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px dashed var(--border-color);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .qf-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .qf-q {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.35;
+      }
+      .qf-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .qf-input {
+        background: var(--bg-input);
+        color: var(--text-primary);
+        border: 1.5px solid var(--border-color);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      .qf-input:focus {
+        border-color: var(--color-primary);
+      }
+      .qf-submit {
+        align-self: flex-start;
+        margin-top: 4px;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 10px 22px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .qf-submit:hover:not(:disabled) {
+        filter: brightness(1.15);
+        transform: translateY(-1px);
+      }
+      .qf-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
 
       /* IMPROVED INPUT AREA */
@@ -2257,6 +2472,19 @@
           abortController = null;
         }
       }
+
+      async function sendQuickReply(label) {
+        if (isLoading) return;
+        renderMessage({ role: "user", content: label });
+        setLoading(true);
+        showTypingIndicator();
+        const response = await sendMessage(label, currentSessionId);
+        hideTypingIndicator();
+        if (response !== "Geração cancelada.") {
+          renderMessage({ role: "assistant", content: response });
+        }
+        setLoading(false);
+      }
       // ============================================
       // UI FUNCTIONS
       // ============================================
@@ -2449,13 +2677,182 @@
         let editBtn = null;
 
         if (message.role === "assistant") {
-          content.innerHTML = marked.parse(message.content || "");
+          // Extract quick replies block: <!--QUICK_REPLIES:[...]-->
+          let rawContent = message.content || "";
+          let quickReplies = null;
+          let quickForm = null;
+
+          const qrMatch = rawContent.match(
+            /<!--\s*QUICK_REPLIES\s*:\s*(\[[\s\S]*?\])\s*-->/i,
+          );
+          if (qrMatch) {
+            try {
+              const parsed = JSON.parse(qrMatch[1]);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                quickReplies = parsed.filter(
+                  (x) => typeof x === "string" && x.trim().length > 0,
+                );
+              }
+            } catch (e) {
+              console.warn("Quick replies parse failed:", e);
+            }
+            rawContent = rawContent.replace(qrMatch[0], "").trim();
+          }
+
+          // Extract quick form block: <!--QUICK_FORM:[{...}]-->
+          const qfMatch = rawContent.match(
+            /<!--\s*QUICK_FORM\s*:\s*(\[[\s\S]*?\])\s*-->/i,
+          );
+          if (qfMatch) {
+            try {
+              const parsed = JSON.parse(qfMatch[1]);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                quickForm = parsed.filter(
+                  (x) => x && typeof x === "object" && typeof x.q === "string",
+                );
+              }
+            } catch (e) {
+              console.warn("Quick form parse failed:", e);
+            }
+            rawContent = rawContent.replace(qfMatch[0], "").trim();
+          }
+
+          content.innerHTML = marked.parse(rawContent);
+
+          // Aplica classes de cor nas seções H2 com base no emoji
+          content.querySelectorAll("h2").forEach((h) => {
+            const t = (h.textContent || "").trim();
+            if (/^✅|^✔|^✓/.test(t)) h.classList.add("sec-spec");
+            else if (/^⚠|^❌|^🚫/.test(t)) h.classList.add("sec-warn");
+            else if (/^🧮|^📊|^🔢|^🏢|^📋/.test(t)) h.classList.add("sec-info");
+            else if (/^🧾|^➡|^👉|^🚀|^🎯/.test(t)) h.classList.add("sec-cta");
+          });
 
           // Force new tab for links
           content.querySelectorAll("a").forEach((link) => {
             link.setAttribute("target", "_blank");
             link.setAttribute("rel", "noopener noreferrer");
           });
+
+          // Render quick form (multi-question, single submit)
+          if (quickForm && quickForm.length > 0) {
+            const formDiv = document.createElement("div");
+            formDiv.className = "quick-form";
+
+            const state = quickForm.map((item) => ({
+              q: item.q,
+              value: "",
+              options: Array.isArray(item.options) ? item.options : null,
+            }));
+
+            quickForm.forEach((item, idx) => {
+              const itemDiv = document.createElement("div");
+              itemDiv.className = "qf-item";
+
+              const qLabel = document.createElement("div");
+              qLabel.className = "qf-q";
+              qLabel.textContent = `${idx + 1}. ${item.q}`;
+              itemDiv.appendChild(qLabel);
+
+              const textInput = document.createElement("input");
+              textInput.type = "text";
+              textInput.className = "qf-input";
+              textInput.placeholder =
+                item.placeholder || "Digite a resposta ou clique numa opção";
+              textInput.addEventListener("input", (e) => {
+                state[idx].value = e.target.value;
+                // Deselect chips if user types something different
+                if (state[idx].options) {
+                  itemDiv
+                    .querySelectorAll(".quick-reply-chip")
+                    .forEach((c) => {
+                      if (c.textContent !== e.target.value) {
+                        c.classList.remove("selected");
+                      }
+                    });
+                }
+              });
+              itemDiv.appendChild(textInput);
+
+              if (state[idx].options) {
+                const chipsDiv = document.createElement("div");
+                chipsDiv.className = "qf-chips";
+                state[idx].options.forEach((opt) => {
+                  const chip = document.createElement("button");
+                  chip.type = "button";
+                  chip.className = "quick-reply-chip";
+                  chip.textContent = opt;
+                  chip.onclick = () => {
+                    chipsDiv
+                      .querySelectorAll(".quick-reply-chip")
+                      .forEach((c) => c.classList.remove("selected"));
+                    chip.classList.add("selected");
+                    state[idx].value = opt;
+                    textInput.value = opt;
+                  };
+                  chipsDiv.appendChild(chip);
+                });
+                itemDiv.appendChild(chipsDiv);
+              }
+
+              formDiv.appendChild(itemDiv);
+            });
+
+            const submitBtn = document.createElement("button");
+            submitBtn.type = "button";
+            submitBtn.className = "qf-submit";
+            submitBtn.textContent = "Enviar respostas";
+            submitBtn.onclick = () => {
+              const lines = state
+                .map((s, i) => {
+                  const v = (s.value || "").trim() || "Não sei";
+                  return `${i + 1}. ${s.q}\n   → ${v}`;
+                })
+                .join("\n\n");
+              const compiled = `📋 Respostas do formulário:\n\n${lines}`;
+              // Lock the form after submit
+              formDiv
+                .querySelectorAll("input, button")
+                .forEach((el) => (el.disabled = true));
+              submitBtn.textContent = "Enviado";
+              if (typeof sendQuickReply === "function") {
+                sendQuickReply(compiled);
+              } else {
+                elements.messageInput.value = compiled;
+                elements.inputForm.requestSubmit();
+              }
+            };
+            formDiv.appendChild(submitBtn);
+
+            content.appendChild(formDiv);
+          }
+
+          // Render single quick reply chips (only if no form)
+          if (!quickForm && quickReplies && quickReplies.length > 0) {
+            const chipsDiv = document.createElement("div");
+            chipsDiv.className = "quick-replies";
+            quickReplies.forEach((label) => {
+              const chip = document.createElement("button");
+              chip.type = "button";
+              chip.className = "quick-reply-chip";
+              chip.textContent = label;
+              chip.onclick = () => {
+                // Disable all chips in this message after one is picked
+                chipsDiv
+                  .querySelectorAll(".quick-reply-chip")
+                  .forEach((c) => (c.disabled = true));
+                chip.classList.add("selected");
+                if (typeof sendQuickReply === "function") {
+                  sendQuickReply(label);
+                } else {
+                  elements.messageInput.value = label;
+                  elements.inputForm.requestSubmit();
+                }
+              };
+              chipsDiv.appendChild(chip);
+            });
+            content.appendChild(chipsDiv);
+          }
         } else {
           // Se for arquivo, NÃO mostra texto nem botão de editar
           if (message.file) {

@@ -1,0 +1,651 @@
+{
+  "name": "Aspiramaq-Agent-IA-copy",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "You are an internal Engineering & Sales Support Assistant. You DO NOT communicate directly with final clients. Your user is an internal company collaborator (salesperson or engineer). Your goal is to help your colleague select the correct industrial exhaust/filtration equipment by analyzing historical data, technical guides, and providing sales ammunition (success cases).\n\nSYSTEM CONTEXT:\nToday's Date: {{ $now.setLocale('pt-br').toFormat('dd/MM/yyyy') }}\nCurrent Time: {{ $now.setLocale('pt-br').toFormat('HH:mm') }}\nCurrent Location: São Bernardo do Campo, São Paulo (SP), Brazil.\n\nKNOWLEDGE SOURCES (RAG & TOOLS):\n1. Spreadsheet Tool (History): Contains past cases. Columns: PÓ, TECIDO, MOTOR, EQUIPAMENTO, APROVAÇÃO, CLIENTE, OBSERVAÇÕES. Use this to find successful cases, failed cases, and how the MOTOR and TECIDO were dimensioned in the real world.\n2. RAG (Supabase): Contains Product Catalogs, Manuals, and the \"Guia Técnico de Elementos Filtrantes Industriais\". Use this guide to cross-reference fabric specifications and technical rules.\n\n⚠️ CRITICAL SPREADSHEET RULE (TAB DISCOVERY): When calling the spreadsheet tool, you must use the exact tab name. If you DO NOT know the exact tab name, send an empty string \"\". Read the returned list, select the appropriate tab, and call the tool a SECOND TIME using that exact name. Send plain text parameters, NEVER a JSON object string. (Max 2 tool calls per turn to prevent loops).\n\nCORE BEHAVIOR & RULES:\n1. BE OBJECTIVE & VISUAL: Never repeat information. Use short sentences, bullet points, and tables. No dense blocks of text.\n2. DO NOT GUESS (THE \"STOP & ASK\" RULE): If the collaborator provides vague information (e.g., \"exhaust for dust\") and you cannot confidently recommend the exact Motor, Fabric, or Equipment, DO NOT invent a final recommendation. Instead, show the closest historical data you found, explain what the Technical Guide suggests, and EXPLICITLY ask the missing technical questions needed to finish the sizing.\n3. MOTOR SIZING: Always look at the spreadsheet history to see what MOTOR was actually used in similar applications, not just the catalog.\n4. HIGHLIGHT COMPANIES: Make historical clients highly visible so the salesperson can use them as Social Proof (\"Munição de Vendas\").\n5. PROTECT KNOW-HOW: Always reveal the exact technical fabric to the internal user, but use a highly visible warning telling them NOT to pass the exact fabric name to the client (call it 'Filtro Especial' to the client).\n\nRESPONSE STRUCTURE (STRICT MARKDOWN TEMPLATE):\nYou MUST format your response exactly according to this structure. Omit sections that are completely empty, but maintain this visual hierarchy.\n\n**[Greeting & 1-line summary of the query]**\n\n### 🏢 Munição de Vendas: Histórico e Casos Semelhantes\n*Use as empresas abaixo como prova social para convencer seu cliente de que já dominamos esse problema.*\n| Cliente | Pó/Aplicação | Equipamento & Motor Utilizado | Status/Obs |\n| :--- | :--- | :--- | :--- |\n| [Client Name] | [Dust/App] | [Equip] + [Motor from sheet] | ✅ Sucesso / ⚠️ Atenção |\n*(If no exact match, list the closest material category, e.g., Wood -> MDF).*\n\n### ⚙️ Pré-Análise Técnica (Baseado no Guia e Histórico)\n*Aqui está o que sabemos até o momento sobre essa aplicação:*\n* **Elemento Filtrante Recomendado:** [Fabric name based on Guide/History]\n* **Motorização Padrão para o Caso:** [Motor specs based on history]\n* **Atenção Técnica:** [Any warnings from the Technical Guide or failed historical observations]\n\n> ⚠️ **AVISO PARA VENDAS (PROTEÇÃO DE KNOW-HOW):** Não revele o nome do tecido acima para o cliente. Na proposta, descreva apenas como *\"Filtro Manga de Alta Performance\"* ou *\"Filtro Especial\"*.\n\n### 🛑 O Que Falta Para Fechar o Dimensionamento?\n*(CRITICAL: If the user didn't provide enough data to finalize the exact equipment, list ONLY the specific questions you need answered to finish the job. Do not list questions you already know the answer to).*\nPara cravarmos o equipamento ideal e o motor exato, preciso que você levante as seguintes informações com o cliente:\n* [e.g., Qual a máquina exata que gera o pó?]\n* [e.g., Quantos pontos de sucção e qual o diâmetro da tubulação?]\n* [e.g., Qual a distância em metros da máquina até o exaustor?]\n\n*(If you already have ALL information, change this section title to \"✅ Conclusão\" and give the final go-ahead).*\n\nTONE: Internal Senior Engineering Copilot. Direct, highly technical, supportive. Write EXCLUSIVELY in Portuguese (pt-BR).",
+        "height": 80,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -128,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "72cf78c7-be33-4535-8da6-c49a7c42fd39",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM aspiramaq_chat_message \nWHERE session_id = '{{ $json.body.sessionId }}' \nAND id >= {{ $json.body.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -336,
+        848
+      ],
+      "id": "2b9313ab-4b8e-4731-86f9-07389f336c4f",
+      "name": "Delete Edited Message",
+      "credentials": {
+        "postgres": {
+          "id": "jFjeYH6Nt3aRNkoM",
+          "name": "Supabase_database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"success\": true }",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "49575b9b-9a04-4b29-97de-d6417d58a5c3",
+      "name": "PruneResponse",
+      "position": [
+        -128,
+        848
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Agent Tools for RAG",
+        "height": 528.85546469693,
+        "width": 583.4552380860637,
+        "color": 4
+      },
+      "id": "9680d639-0355-4ca5-b82c-a686325cba16",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        496,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## RAG AI Agent with Chat Interface",
+        "height": 529,
+        "width": 1052
+      },
+      "id": "3a786b06-a7e1-4851-93c0-ae251b67f030",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        640
+      ],
+      "id": "0b9b623e-1cc6-4369-b6a5-8d35b0478976",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Z4XWEFCEAurXpq6I",
+          "name": "Google Gemini(PaLM) Api account Giovani"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "documents",
+        "toolDescription": "ALWAYS use this tool FIRST to find content. It searches the entire database by similarity. Analyze the returned results immediately. Do NOT search multiple times for the same topic.",
+        "tableName": {
+          "__rl": true,
+          "value": "aspiramaq_documents",
+          "mode": "list",
+          "cachedResultName": "aspiramaq_documents"
+        },
+        "topK": 5,
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        704,
+        432
+      ],
+      "id": "27074906-9b83-4cff-a89e-4fbea0454760",
+      "name": "search_knowledge_base",
+      "credentials": {
+        "supabaseApi": {
+          "id": "i5Q8tj8Pyc9XjSGd",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-pro-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        592
+      ],
+      "id": "3221db84-ad59-469b-99b5-b5cf5e617c9b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Z4XWEFCEAurXpq6I",
+          "name": "Google Gemini(PaLM) Api account Giovani"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to fetch the list of ALL available documents for this user. Returns the Title, ID, and URL (Link).",
+        "operation": "executeQuery",
+        "query": "SELECT id, title, url, schema, session_id \nFROM aspiramaq_document_metadata \nWHERE session_id = $1 OR session_id IS NULL;",
+        "options": {
+          "queryReplacement": "={{ $json.sessionId }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.5,
+      "position": [
+        48,
+        592
+      ],
+      "id": "098c205a-b24d-49fc-be60-b71f8712f745",
+      "name": "List Documents",
+      "credentials": {
+        "postgres": {
+          "id": "jFjeYH6Nt3aRNkoM",
+          "name": "Supabase_database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Given a file ID (found via List Documents), fetches the full text content.",
+        "operation": "executeQuery",
+        "query": "SELECT \n    string_agg(content, ' ') as document_text\nFROM aspiramaq_documents\n  WHERE metadata->>'file_id' = $1\nGROUP BY metadata->>'file_id';",
+        "options": {
+          "queryReplacement": "={{ $fromAI('file_id') }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.5,
+      "position": [
+        352,
+        800
+      ],
+      "id": "e859d3ab-6bfd-4d17-b5c5-f38913a7c2ac",
+      "name": "Get File Contents",
+      "credentials": {
+        "postgres": {
+          "id": "jFjeYH6Nt3aRNkoM",
+          "name": "Supabase_database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Run a SQL query on CSV/Excel rows. ONLY use dataset_ids that you found using the 'List Documents' tool. \n\nExample:\nSELECT AVG((row_data->>'revenue')::numeric) FROM castor_document_rows WHERE dataset_id = '123';",
+        "operation": "executeQuery",
+        "query": "{{ $fromAI('sql_query') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.5,
+      "position": [
+        192,
+        784
+      ],
+      "id": "782873f6-cdb6-4d14-a42a-b61a16634af0",
+      "name": "Query Document Rows",
+      "credentials": {
+        "postgres": {
+          "id": "jFjeYH6Nt3aRNkoM",
+          "name": "Supabase_database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "=You are an internal Senior Engineering & Sales Support Assistant. You DO NOT communicate directly with final clients. Your user is an internal company collaborator. Your goal is to dimension industrial exhaust/filtration equipment by crossing inbound demands (Formulario), past history (Spreadsheet), technical literature (RAG), and your own STRICT ENGINEERING JUDGMENT.\n\nSYSTEM CONTEXT:\nToday's Date: {{ $now.setLocale('pt-br').toFormat('dd/MM/yyyy') }}\nCurrent Time: {{ $now.setLocale('pt-br').toFormat('HH:mm') }}\nCurrent Location: Diadema, São Paulo (SP), Brazil.\n\nKNOWLEDGE SOURCES (RAG & TOOLS):\n\n1. RAG (Supabase / Drive Files): This is your deep technical library. YOU MUST CONSULT IT ACTIVELY. It contains:\n   - \"Manual Técnico de Especificações: Exaustores, Ciclones, Transportadores e Filtros\" (Use this for physical limits, airflow constraints, pipe diameter vs. velocity rules, and motor sizing formulas).\n   - \"Guia Técnico de Elementos Filtrantes Industriais\" (Use this to cross-reference fabric specs and temperature/chemical limits).\n   - Product Catalogs and Operation Manuals.\n   \n⚠️ CRITICAL RAG RULE (PROACTIVE EXPLORATION):\nIf you need to validate if a diameter (e.g., 4\") can handle a specific airflow, or which Cyclone model fits a certain dust load, DO NOT GUESS. You must query your RAG tools to read the \"Manual Técnico\". If you are unsure what files exist, you can invoke your tools to list available documents. Always ground your physics and math in the official manuals provided in the RAG.\n\nCORE BEHAVIOR & TRIGGERS (HOW YOU MUST ACT):\n\nTRIGGER 1: THE \"FORM\" INQUIRY (NEW CLIENT)\nIf the user asks about a company, call the Spreadsheet Tool for \"Respostas ao formulário\", get the MOST RECENT entry for that company, and extract all technical constraints (Dust, Voltage, Restrictions, etc.).\n\nTRIGGER 2: DIAGNOSTIC SIZING (USING HISTORY)\nWhen a material/process is defined, call the \"historico\" tab. ANALYZE failures (\"NÃO\", \"SATUROU\") and successes (\"SIM\"). Use this to justify your sizing.\n\n🧠 CRITICAL SANITY CHECKS & PROCESS DEDUCTION (ACT LIKE A SENIOR ENGINEER):\nYou must NOT blindly trust the user or the form. You must AUDIT the information based on physics and industrial reality:\n1. PROCESS OVERRIDES DESCRIPTION: Deduce the dust characteristics from the GENERATING PROCESS, not just what the user says. \n   - Example: If the process is \"Usinagem/Torno/Fresa\" and they say the dust is \"dry\", WARN them that machining usually involves coolant/oil, which changes the dust to oily/humid. \n   - Example: If it's \"Solda\" (Welding), deduce it's a thermal fume, extremely fine, requiring specific capture velocity.\n2. IMPOSSIBLE PHYSICS (DIAMETERS & FLOW): Actively challenge absurd parameters. \n   - Example: A massive machine cannot be exhausted with a 2\" or 3\" pipe.\n   - Example: You cannot have 8 suction points with a total system flow of only 250m³/h (this is physically absurd). \n   - If you spot impossible physics, flag it immediately as 🚨 ERRO DE CONCEITO e FÍSICA.\n3. MINIMIZE QUESTIONS, MAXIMIZE ASSUMPTIONS: Stop acting like a questionnaire. Instead of asking 5 questions, make educated engineering assumptions based on the process, state them as premises, and ask a MAXIMUM of 1 or 2 truly critical missing pieces of data.\n4. PROACTIVE SIZING & MATH (NO PERMISSION NEEDED): If the user provides the number of suction points, their diameters, and whether they are simultaneous, YOU MUST IMMEDIATELY SUGGEST THE MOTOR POWER (cv) AND EQUIPMENT MODEL. Do not ask \"Do you want me to calculate?\". \n   - How to deduce the motor: Look at the \"historico\" tab for cases with similar total pipe areas (e.g., if the user has 4 points of 4\", look for past systems that handled multiple 4\" or one large 8\"/10\" main pipe). Match the motor size (cv) used in those successful historical cases to justify your current motor suggestion.\n   - Pattern Recognition: If a past case used a 5cv motor for two 4\" pipes, logically, four 4\" pipes will require at least 7.5cv or 10cv. Use this engineering extrapolation and STATE IT in your auditing section.\n5. CONCRETE ENGINEERING CORRECTIONS (FIX IT, DON'T JUST COMPLAIN): If you detect an impossible physics scenario (like a pipe diameter that is too large or too small for the process), DO NOT just flag the error. You MUST propose a concrete physical correction. \n   - Example: If the user asks for \"four 18-inch pipes for a sander\", tell them that is impossible and propose the correct arrangement: \"A solução real e exequível é uma rede tronco principal de 12 polegadas com 4 ramais de 4 ou 5 polegadas.\"\n   - Use the \"Manual Técnico\" rules (velocity vs. diameter) and the \"historico\" tab to formulate this concrete proposal.\n\nTECHNICAL RULES (ALWAYS APPLY):\n- Abrasive Dust: Destroys standard exhausters.\n- Foundry/Mining: Requires heavy-duty/oversized machines.\n- Oily/Humid Dust: Rapid filter saturation.\n- Know-How Protection: Reveal the exact fabric to the user ONCE, but explicitly warn them to write \"Filtro Especial\" on the client proposal.\n\nRESPONSE STRUCTURE (ADAPTIVE MARKDOWN TEMPLATE):\n\n[1-line direct acknowledgment. If analyzing a form, state company name and date].\n\n📊 Status do Dimensionamento\n| Parâmetro | Especificação / Análise | Status |\n| :--- | :--- | :--- |\n| Empresa / Origem | [Nome ou 'Via Chat'] | [✅] |\n| Processo Gerador | [A máquina/processo real. Ex: Torno CNC] | [✅/⏳] |\n| Material Deduzido | [O que VOCÊ deduziu. Ex: Cavaco metálico + Névoa de Óleo] | [✅/⚠️] |\n| Equipamento | [e.g., Linha Ciclone] | [✅/⏳] |\n| Motor | [e.g., 7,5 cv] | [✅/⏳] |\n| Elemento Filtrante | [e.g., Sarja Reforçada (Vender como Filtro Especial)] | [✅/⏳] |\n\n🧠 Auditoria de Engenharia & Alertas Críticos\n(MANDATORY: Challenge the data if needed. Did they provide an impossible diameter? Are the suction points disproportional? EXPLICITLY REFERENCE rules or limits found in the \"Manual Técnico\" or \"Guia Técnico\").\n* 🚨 Análise do Cenário: [Explique o erro físico, a dedução do processo ou o risco. Ex: \"Um duto de 18 polegadas por ponto é irreal para uma lixadeira, pois exigiria uma vazão industrial gigantesca...\"].\n* 💡 Solução Prática Proposta: [MANDATORY IF THERE IS AN ERROR: Dê a arquitetura exata de correção. Não deixe o usuário no escuro. Diga exatamente qual diâmetro de duto principal e ramais ele deve usar na vida real para que o projeto funcione].\n\n🔍 Diagnóstico Baseado no Histórico (Provas e Justificativas)\n(MANDATORY IF NEW MATERIAL/PROCESS: You MUST justify your equipment and filter selection by EXPLICITLY SHOWING similar past cases from the \"historico\" tab. Do not just summarize; present the actual cases in the table below to prove your point).\n\n| Cliente | Equipamento | Elemento Filtrante | Status | Observações / Lição Aprendida |\n| :--- | :--- | :--- | :--- | :--- |\n| [Ex: Altwin] | [Ciclone 100 Cartucho] | [Cartucho Membrana] | [❌ NÃO] | [Saturou rápido, não vazou. Próximo necessita de água] |\n| [Ex: Cliente Y] | [Ciclone 150 NY] | [Sarja Normal] | [✅ SIM] | [Operação estável, sem saturação precoce] |\n\n*(RULE: Extract a MINIMUM of 1 and a MAXIMUM of 10 relevant cases from the \"historico\" tab matching the current dust/process. Mix both failures (NÃO/PARCIAL) and successes (SIM) to create a strong technical contrast).*\n\n* 🎯 Justificativa da Escolha Atual: [Write a 1-2 sentence conclusion crossing the data from the table. Example: \"Como vimos na tabela, o filtro de cartucho saturou no cliente X com este mesmo pó. Portanto, estou descartando essa opção e recomendando o equipamento Y com Filtro Especial Z, replicando o sucesso validado no cliente W\"].\n\n🛑 Diretriz Final & Especificação Recomendada\n(MANDATORY: If you have the process, dust type, and pipe diameters, YOU MUST GIVE THE FINAL SIZING HERE. Do not ask for permission).\n* Equipamento Sugerido: [Sua dedução final. Ex: Ciclone 150 NY]\n* Motor Sugerido: [Sua dedução final baseada na proporção de bocas/vazão. Ex: 7,5 cv]\n* Elemento Filtrante: [Sua dedução. Ex: Sarja Reforçada (Filtro Especial)]\n* Base Técnica: [Cite de onde tirou os parâmetros. Ex: \"Cálculo de vazão validado pelo Manual Técnico e histórico de sucesso do cliente Prado\"].\n* Premissas Assumidas: [Liste o que você assumiu para cravar essa máquina].\n\nTONE: Internal Senior Engineering Copilot. Assertive, critical, independent. Write EXCLUSIVELY in Portuguese (pt-BR).",
+          "maxIterations": 20
+        }
+      },
+      "id": "fe43a4bf-268c-411e-9a4c-9c1af3c98fdc",
+      "name": "RAG AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        -32,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "fcc39426-59b1-4436-af91-af4151f748d4",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        320,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aspiramaq-AgentRag",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "937be8e0-a8a1-4266-95c6-ff95681cbb41",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        336
+      ],
+      "webhookId": "693e9c67-afca-4f79-9a88-a3f6f5972ddd"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9a9a245e-f1a1-4282-bb02-a81ffe629f0f",
+              "name": "chatInput",
+              "value": "={{ $json?.chatInput || $json.body.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "b80831d8-c653-4203-8706-adedfdb98f77",
+              "name": "sessionId",
+              "value": "={{ $json?.sessionId || $json.body.sessionId}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "539d1cd1-3f50-4d14-9b01-a77bc007071d",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "tableName": "aspiramaq_chat_message"
+      },
+      "id": "97c06ec9-fa6c-4b4d-a8a6-961aa94ff8e0",
+      "name": "Postgres Chat Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.1,
+      "position": [
+        -96,
+        592
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "jFjeYH6Nt3aRNkoM",
+          "name": "Supabase_database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        512
+      ],
+      "id": "01fcb70a-4c38-4697-bd5a-61f04cb8fa62",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "hZRBXrfocBn4jbFB",
+          "name": "openrouter_cloudfy"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aspiramaq-prune-history",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d2856a2a-adc6-45a2-a663-d65f1554a396",
+      "name": "PruneWebhook",
+      "position": [
+        -544,
+        848
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "webhookId": "f762ae4e-b5d4-42be-982b-e3649b2a45fd"
+    },
+    {
+      "parameters": {
+        "description": "Use esta ferramenta SEMPRE que o usuário perguntar sobre dados de planilhas, vendas, pedidos ou relatórios numéricos.\n\nCOMO USAR ESTA FERRAMENTA (2 PASSOS):\n1. Se você NÃO SABE quais abas (separadores) existem na planilha: Envie o parâmetro 'nome_do_separador' VAZIO (\"\"). A ferramenta retornará a lista de abas disponíveis.\n2. Se você JÁ SABE a aba correta: Envie o parâmetro 'nome_do_separador' com o nome exato da aba.\n3. Se o usuário procurar um cliente ou status específico, envie também o 'termo_de_pesquisa' (ex: \"ACME\" ou \"Pendente\").",
+        "workflowId": {
+          "__rl": true,
+          "value": "aeevv95g1JrqmHe2",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/aeevv95g1JrqmHe2",
+          "cachedResultName": "[Aspiramaq] Sub-fluxo: Consultar Planilha Inteligente"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        560
+      ],
+      "id": "6fda1165-bbdb-431c-b7e3-ed04a93f095c",
+      "name": "Consultar_Planilha_Inteligente1"
+    },
+    {
+      "parameters": {
+        "path": "aspiramaq_health",
+        "options": {
+          "responseData": "={\"status\": \"ok\"}"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        48
+      ],
+      "id": "5e7d7885-8634-41a7-a368-3b2842225faa",
+      "name": "Test Connection",
+      "webhookId": "291e54fe-5a3b-4565-9fa3-c18879fd6d28"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-opus-4-5-20251101",
+          "mode": "list",
+          "cachedResultName": "Claude Opus 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -528,
+        512
+      ],
+      "id": "efbaaf1e-b731-48d8-adee-e68186f32c1a",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "ohN9YHsrwMLXZUKL",
+          "name": "Anthropic account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-5.4-mini",
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        608
+      ],
+      "id": "87b543f0-2869-4bb8-8906-92f7223f12d2",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "xby4FSbCaCnssJxl",
+          "name": "Azure Open AI account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        704,
+        592
+      ],
+      "id": "f71c7a4e-139a-4767-b110-b6023197c33c",
+      "name": "Embeddings Azure OpenAI",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "xby4FSbCaCnssJxl",
+          "name": "Azure Open AI account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Delete Edited Message": {
+      "main": [
+        [
+          {
+            "node": "PruneResponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        []
+      ]
+    },
+    "search_knowledge_base": {
+      "ai_tool": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "List Documents": {
+      "ai_tool": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PruneWebhook": {
+      "main": [
+        [
+          {
+            "node": "Delete Edited Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar_Planilha_Inteligente1": {
+      "ai_tool": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Azure OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "search_knowledge_base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Document Rows": {
+      "ai_tool": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get File Contents": {
+      "ai_tool": [
+        [
+          {
+            "node": "RAG AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6c544de0-1a09-4de5-ad8f-d375fb977ea2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "03d32a206f2d8840fce482e6c587726f18775bd9177e9401c00ca76d3086ad41"
+  },
+  "id": "htyWmQww2U8IY5Sf",
+  "tags": []
+}
