@@ -883,7 +883,7 @@
       /* Tokens de cor para o conteúdo da resposta — visíveis em ambos temas */
       :root {
         --asst-accent: #2563eb;
-        --asst-accent-soft: rgba(37, 99, 235, 0.10);
+        --asst-accent-soft: rgba(37, 99, 235, 0.1);
         --asst-accent-strong: #1d4ed8;
         --asst-success: #16a34a;
         --asst-success-soft: rgba(22, 163, 74, 0.12);
@@ -926,7 +926,9 @@
         border-bottom: none;
       }
       /* Variantes de cor por emoji de seção */
-      .message.assistant .message-content h2:has(> :first-child) { /* fallback */ }
+      .message.assistant .message-content h2:has(> :first-child) {
+        /* fallback */
+      }
       .message.assistant .message-content h2.sec-spec,
       .message.assistant .message-content h2:where(:is(*))[data-sec="spec"] {
         color: var(--asst-success);
@@ -970,7 +972,9 @@
         border-radius: 6px;
         color: inherit;
       }
-      .message.assistant .message-content blockquote p { margin: 0; }
+      .message.assistant .message-content blockquote p {
+        margin: 0;
+      }
 
       /* Highlight do "Próximo passo" — última seção como CTA */
       .message.assistant .message-content h2.sec-cta + p,
@@ -996,7 +1000,11 @@
       }
 
       .message-content th {
-        background: linear-gradient(180deg, var(--asst-accent-strong), var(--asst-accent));
+        background: linear-gradient(
+          180deg,
+          var(--asst-accent-strong),
+          var(--asst-accent)
+        );
         color: #fff;
         padding: 11px 14px;
         text-align: left;
@@ -2763,13 +2771,11 @@
                 state[idx].value = e.target.value;
                 // Deselect chips if user types something different
                 if (state[idx].options) {
-                  itemDiv
-                    .querySelectorAll(".quick-reply-chip")
-                    .forEach((c) => {
-                      if (c.textContent !== e.target.value) {
-                        c.classList.remove("selected");
-                      }
-                    });
+                  itemDiv.querySelectorAll(".quick-reply-chip").forEach((c) => {
+                    if (c.textContent !== e.target.value) {
+                      c.classList.remove("selected");
+                    }
+                  });
                 }
               });
               itemDiv.appendChild(textInput);

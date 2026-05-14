@@ -3,9 +3,11 @@
 ## O que está acontecendo nos 2 turnos que você mostrou
 
 ### Turno 1 — usuário diz "me ajude a dimensionar para pó de madeira"
+
 O agente já despeja **tudo de uma vez**: `status_dimensionamento`, `auditoria_alertas`, `historico_base` com 5 clientes, `diretriz_recomendada` com 3 equipamentos, 3 faixas de motor e 3 mídias. Sem ter **um único dado real do cenário**.
 
 ### Turno 2 — usuário responde "6 bocas Ø5", lixadeira, 5 m"
+
 O agente **repete o template inteiro** (status, auditoria, histórico, diretriz), repete 3 dos 5 clientes do turno 1, cita 5 novos sem explicar a relação com o caso atual, e crava `Ciclone 150 NY + 15 cv + Sarja grossa / AG reforçado` **sem mostrar conta de vazão**, **sem perguntar temperatura/umidade**, e **sem mencionar o risco ATEX** (pó de madeira fina é pó combustível classificado).
 
 ---
@@ -24,18 +26,19 @@ O agente **repete o template inteiro** (status, auditoria, histórico, diretriz)
 
 ## O que o prompt v2 muda
 
-| Antes | Depois |
-|---|---|
-| Template único cuspido todo turno | **4 fases adaptativas**: Discovery → Validation → Diagnosis → Final Spec |
-| Sem rastreio do que já foi dito | Memória interna de **12 campos críticos** (§6 do RAG) — o agente sabe o que ainda falta |
-| Bloqueios fracos | **Bloqueios obrigatórios** alinhados ao §8 do RAG (ATEX, temperatura, umidade, coletor, bocas) |
-| ATEX esquecido | ATEX **obrigatório** para qualquer pó orgânico (madeira, MDF, açúcar, alumínio fino, grãos) |
-| Mídia chutada | Mídia tem que vir do **§5/§9 do RAG** com regra de coerência (T01–T08) |
-| Sem matemática | Toda recomendação de motor/duto mostra **vazão, velocidade, base no Manual Técnico** |
-| Histórico despejado | Máx. 5 casos, **só na Fase 3**, com lição explícita por linha |
-| Pergunta enxurrada | **Máx. 2 perguntas por turno**, priorizadas pelo impacto |
+| Antes                             | Depois                                                                                         |
+| --------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Template único cuspido todo turno | **4 fases adaptativas**: Discovery → Validation → Diagnosis → Final Spec                       |
+| Sem rastreio do que já foi dito   | Memória interna de **12 campos críticos** (§6 do RAG) — o agente sabe o que ainda falta        |
+| Bloqueios fracos                  | **Bloqueios obrigatórios** alinhados ao §8 do RAG (ATEX, temperatura, umidade, coletor, bocas) |
+| ATEX esquecido                    | ATEX **obrigatório** para qualquer pó orgânico (madeira, MDF, açúcar, alumínio fino, grãos)    |
+| Mídia chutada                     | Mídia tem que vir do **§5/§9 do RAG** com regra de coerência (T01–T08)                         |
+| Sem matemática                    | Toda recomendação de motor/duto mostra **vazão, velocidade, base no Manual Técnico**           |
+| Histórico despejado               | Máx. 5 casos, **só na Fase 3**, com lição explícita por linha                                  |
+| Pergunta enxurrada                | **Máx. 2 perguntas por turno**, priorizadas pelo impacto                                       |
 
 ---
 
 ## Como aplicar
+
 Abra o workflow `Aspiramaq-Agent-IA-copy`, edite o nó **RAG AI Agent**, e substitua o campo `System Message` pelo conteúdo de [prompt_v2.md](prompt_v2.md).
